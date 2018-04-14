@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Exercício</title>
+</head>
+<body>
+<input type='file' name='entrada' id='entrada' onchange="readFile()"/>
+</body>
+</html>
+
+<script>
+
+function processFile(text)
+{
+	var text = (text.split('\n'));
+
+	for (let i in text) {
+		text[i] = text[i].split(' ');
+	}
+
+	groupValues(text);
+}
+
+function groupValues(arr)
+{
+	var matrix = {};
+
+	var size = arr[0];
+
+	console.log(arr)
+
+	for (let i = 1;i <= size; i++) {
+		for (let j in arr[i]) {
+			var tempRelations = [];
+
+			if (arr[i][j] == '*') {
+				continue;
+			}
+
+			if (arr[i][j] == '.') {
+				console.log(arr[j+1][j]);
+				tempRelations.push(arr[j+1][j]);
+				continue;
+			}
+
+			matrixPos = arr[i][j];
+		}
+		matrix[matrixPos] = tempRelations;
+	}
+
+}
+
+function readFile() 
+{
+	var file = document.getElementById('entrada').files[0];
+
+	var reader = new FileReader();
+
+    reader.onload = function(e) {
+        processFile(reader.result);
+    }
+
+    reader.readAsText(file);
+}
+
+</script>
