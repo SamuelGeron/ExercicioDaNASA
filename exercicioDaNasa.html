@@ -10,46 +10,163 @@
 
 <script>
 
+/**
+ * Lê o arquivo de texto e transforma em uma matriz
+ * @param {String} text - conteúdo do arquivo de entrada
+ */
 function processFile(text)
 {
 	var text = (text.split('\n'));
+	var lines = [];
 
 	for (let i in text) {
-		text[i] = text[i].split(' ');
+		lines[i] = text[i].split(' ');
 	}
 
-	groupValues(text);
+	var cases = splitTestCases(lines);
+
+	executeCases(cases);
 }
 
-function groupValues(arr)
+/**
+ * Percorre os casos e retorna quais dos caminhos propostos no caso de teste são válidos
+ * Printa o resultado no console em como um array de strings
+ * @param {Array} cases - casos de teste preparados para execução
+ */
+function executeCases(cases)
 {
-	var matrix = {};
+	var validPaths = [];
 
-	var size = arr[0];
+	for (let i in cases) {
+		var casePaths = groupPaths(cases[i]);
 
-	console.log(arr)
+		var resultStr = verifyValidPaths(cases[i]['paths'], casePaths);
 
-	for (let i = 1;i <= size; i++) {
-		for (let j in arr[i]) {
-			var tempRelations = [];
-
-			if (arr[i][j] == '*') {
-				continue;
-			}
-
-			if (arr[i][j] == '.') {
-				console.log(arr[j+1][j]);
-				tempRelations.push(arr[j+1][j]);
-				continue;
-			}
-
-			matrixPos = arr[i][j];
-		}
-		matrix[matrixPos] = tempRelations;
+		validPaths.push(resultStr);
 	}
 
+	console.log('Resultado ->');
+	console.log(validPaths);
 }
 
+/**
+ * Percorre os casos e retorna quais dos caminhos propostos no caso de teste são válidos
+ * @param {Array} pathsToCheck - Caminhos para o testar se há ligação
+ * @param {Array} paths - Matriz associativa contendo as ligação de cada ponto do "mapa"
+ * @return {String} 
+ *		string contendo '!' para caminhos inválidos ou '*' para caminhos válidos
+ *		separados por espaço entre cada caminho verificado
+ */
+function verifyValidPaths(pathsToCheck, paths)
+{	
+	var resultStr = '';
+
+	for (let i in pathsToCheck) {
+		var from = pathsToCheck[i][0].replace(/\r/, '');
+		var to = pathsToCheck[i][1].replace(/\r/, '');
+
+		if (from == '.' || to == '.') {
+			continue;
+		}
+
+		if (paths[from].indexOf(to) > -1) {
+			resultStr += '* ';
+		} else {
+			resultStr += '! ';
+		}
+	}
+
+	return resultStr;
+}
+
+/**
+ * Separa os dados do arquivo de entrada por caso de teste
+ * @param {Array} lines - Matriz com o conteúdo do arquivo de entrada
+ * @return {Array} 
+ *		dados do arquivo de entrada separados em caso de teste
+ *		cada caso de teste é uma posição do array principal
+ *		cada posição do array principal possui as seguintes chaves:
+ *			size - tamanho do caso de teste
+ *			paths - caminhos para testar
+ *			lines - matriz com os dados do caso de tested
+ */
+function splitTestCases(lines)
+{	
+	var cases = [];
+	var count = 0;
+	var tempPaths = [];
+	var tempLines = [];
+
+	cases[count] = [];
+	for (let i in lines) {
+
+		if (lines[i].length == 1 && !isNaN(parseInt(lines[i]))) {
+			cases[count]['size'] = parseInt(lines[i])
+		} else if (lines[i].length == 2 && lines[i][0].length > 0) {
+			tempPaths.push(lines[i]);
+		} else {
+			tempLines.push(lines[i]);
+		}
+
+		if (lines[i][0].replace(/\r/, '') == "") {
+			cases[count]['paths'] = tempPaths;
+			cases[count]['lines'] = tempLines;
+
+			tempPaths = [];
+			tempLines = [];
+
+			count++;
+			cases[count] = [];
+		} else if (i == (lines.length -1)) {
+			cases[count]['paths'] = tempPaths;
+			cases[count]['lines'] = tempLines;
+		}
+	}
+
+	return cases;
+}
+
+/*
+ * A partir dos dados de entrada monta uma matriz associativa onde o nome da linha é o nome do ponto no "mapa"
+ * e os valor das colunas são os pontos nos quais há ligação
+ * @param {Array} arr - dados do caso de teste
+ * @return {Array} Matriz no formato:
+ *		matrix['xs'] = ['ftg', '&8h']
+ *		matrix['hlç'] = ['ftg', 'iu*']
+ *		...		
+ */
+function groupPaths(arr)
+{
+	var size = parseInt(arr[0]);
+	var matrix = [];
+
+	for (let i = 0; i < arr['size']; i++) {
+
+		var tempRelations = [];
+
+		for (let j = 0; j < arr['size']; j++) {
+
+			if (arr['lines'][i][j].replace(/\r/, '') == '*') {
+				continue;
+			}
+
+			if (arr['lines'][i][j].replace(/\r/, '') == '.') {
+				tempRelations.push(arr['lines'][j][j]);
+				continue;
+			}
+
+			var matrixPos = arr['lines'][i][j];
+		}
+
+		matrix[matrixPos.replace(/\r/, '')] = tempRelations;
+	}
+
+	return matrix;
+}
+
+/**
+ * Faz a leitura do arquivo de entrada como uma string
+ */
 function readFile() 
 {
 	var file = document.getElementById('entrada').files[0];
